@@ -1,0 +1,192 @@
+---
+title: "MCL_MATCH_WES"
+output: html_notebook
+author: HA Hill
+---
+
+```{r}
+library(tidyverse)
+library(maftools)
+library(gt)
+```
+
+
+```{r}
+MCL_1 <- MCH1_funcotated
+MCL_2 <- MCH2_funcotated
+MCL_3 <- MCH3_funcotated
+MCL_4 <- MCH4_funcotated
+MCL_5 <- MCH5_funcotated
+MCL_50 <- MCH50_funcotated
+MCL_51 <- MCH51_funcotated
+MCL_52 <- MCH52_funcotated
+MCL_53 <- MCH53_funcotated
+MCL_55 <- MCH55_funcotated
+MCL_54 <- MCH54_funcotated
+MCL_56 <- MCH56_funcotated
+MCL_60 <- MCH60_funcotated
+MCL_62 <- MCH62_funcotated
+MCL_63 <- MCH63_funcotated
+MCL_65 <- MCH65_funcotated
+MCL_66 <- MCH66_funcotated
+MCL_67 <- MCH67_funcotated
+MCL_68 <- MCH68_funcotated
+MCL_92 <- MCH92_funcotated
+MCL_93 <- MCH93_funcotated
+```
+
+
+```{r}
+
+MCL_1$Tumor_Sample_Barcode[MCL_1$Tumor_Sample_Barcode=="__UNKNOWN__"] <-  "MCL1"
+MCL_2$Tumor_Sample_Barcode[MCL_2$Tumor_Sample_Barcode=="__UNKNOWN__"] <-  "MCL2"
+MCL_3$Tumor_Sample_Barcode[MCL_3$Tumor_Sample_Barcode=="__UNKNOWN__"] <-  "MCL3"
+MCL_4$Tumor_Sample_Barcode[MCL_4$Tumor_Sample_Barcode=="__UNKNOWN__"] <-  "MCL4"
+MCL_5$Tumor_Sample_Barcode[MCL_5$Tumor_Sample_Barcode=="__UNKNOWN__"] <-  "MCL5"
+MCL_50$Tumor_Sample_Barcode[MCL_50$Tumor_Sample_Barcode=="__UNKNOWN__"] <-  "MCL50"
+MCL_51$Tumor_Sample_Barcode[MCL_51$Tumor_Sample_Barcode=="__UNKNOWN__"] <-  "MCL51"
+MCL_52$Tumor_Sample_Barcode[MCL_52$Tumor_Sample_Barcode=="__UNKNOWN__"] <-  "MCL52"
+MCL_53$Tumor_Sample_Barcode[MCL_53$Tumor_Sample_Barcode=="__UNKNOWN__"] <-  "MCL53"
+MCL_54$Tumor_Sample_Barcode[MCL_54$Tumor_Sample_Barcode=="__UNKNOWN__"] <-  "MCL54"
+MCL_55$Tumor_Sample_Barcode[MCL_55$Tumor_Sample_Barcode=="__UNKNOWN__"] <-  "MCL55"
+MCL_56$Tumor_Sample_Barcode[MCL_56$Tumor_Sample_Barcode=="__UNKNOWN__"] <-  "MCL56"
+MCL_60$Tumor_Sample_Barcode[MCL_60$Tumor_Sample_Barcode=="__UNKNOWN__"] <-  "MCL60"
+MCL_62$Tumor_Sample_Barcode[MCL_62$Tumor_Sample_Barcode=="__UNKNOWN__"] <-  "MCL62"
+MCL_63$Tumor_Sample_Barcode[MCL_63$Tumor_Sample_Barcode=="__UNKNOWN__"] <-  "MCL63"
+MCL_65$Tumor_Sample_Barcode[MCL_65$Tumor_Sample_Barcode=="__UNKNOWN__"] <-  "MCL65"
+MCL_66$Tumor_Sample_Barcode[MCL_66$Tumor_Sample_Barcode=="__UNKNOWN__"] <-  "MCL66"
+MCL_93$Tumor_Sample_Barcode[MCL_93$Tumor_Sample_Barcode=="__UNKNOWN__"] <-  "MCL93"
+MCL_92$Tumor_Sample_Barcode[MCL_92$Tumor_Sample_Barcode=="__UNKNOWN__"] <-  "MCL92"
+MCL_68$Tumor_Sample_Barcode[MCL_68$Tumor_Sample_Barcode=="__UNKNOWN__"] <-  "MCL68"
+MCL_67$Tumor_Sample_Barcode[MCL_67$Tumor_Sample_Barcode=="__UNKNOWN__"] <-  "MCL67"
+
+
+
+wes_mcl <-
+  rbind(MCL_1,MCL_2,MCL_3,MCL_4,MCL_5,MCL_50,MCL_51,MCL_52,MCL_54,MCL_55,MCL_93,MCL_53,MCL_56,MCL_92,MCL_68,MCL_60,MCL_62,MCL_63,MCL_65,MCL_66, MCL_67)
+
+write_tsv(wes_mcl, file="wes_mcl.tsv")
+
+```
+
+#Filter out extraneous variants.
+
+```{r}
+wes_mcl <- wes_mcl %>%
+filter(Variant_Classification !="Intron" & Hugo_Symbol != "Unknown")
+
+wes_mcl <- wes_mcl %>%
+filter(Variant_Classification !="3'UTR")
+
+wes_mcl <- wes_mcl %>%
+filter(Variant_Classification !="Silent")
+
+wes_mcl <- wes_mcl %>%
+filter(Variant_Classification !="RNA")
+
+wes_mcl <- wes_mcl %>%
+filter(Variant_Classification !="5'Flank")
+
+wes_mcl <- wes_mcl %>%
+filter(Variant_Classification !="5'UTR")
+
+wes_mcl <- wes_mcl %>%
+filter(Variant_Classification !="DE_NOVO_START_OUT_FRAME")
+
+wes_mcl <- wes_mcl %>%
+filter(Variant_Classification !="DE_NOVO_START_IN_FRAME")
+
+wes_mcl <- wes_mcl %>%
+filter(Variant_Classification !="COULD_NOT_DETERMINE")
+
+wes_mcl <- wes_mcl %>%
+filter(Variant_Classification !="START_CODON_SNP")
+
+wes_mcl <- wes_mcl %>%
+filter(Variant_Classification !="START_CODON_INS")
+
+wes_mcl <- wes_mcl %>%
+filter(Chromosome !="MT")
+
+
+```
+
+#Filter tumor vaf < 0.03
+
+```{r}
+wes_mcl_filter <- wes_mcl %>% 
+filter(tumor_f > 0.03) 
+
+
+wes_mcl_filter <- wes_mcl_filter %>% filter(!is.na(COSMIC_overlapping_mutations) | !is.na(CGC_Tumor_Types_Somatic) | !is.na(FamilialCancerDatabase_Syndromes) | !is.na(Achilles_Top_Genes) |!is.na(COSMIC_fusion_genes)|!is.na(CGC_Tumor_Types_Germline)|!is.na(DNARepairGenes_Activity_linked_to_OMIM)|!is.na(CGC_Translocation_Partner)|!is.na(GO_Molecular_Function)|(Hugo_Symbol=="NSD2")|(Hugo_Symbol=="KMT2A")|(Hugo_Symbol=="MAP3K14")|(Hugo_Symbol=="BTK")|(Hugo_Symbol=="IGH") | (Hugo_Symbol=="MYC"))
+
+```
+
+
+```{r}
+MCL.maf = wes_mcl_filter
+
+MCL.clinical = MCL_clinical
+
+MCL= read.maf(maf = MCL.maf, clinical = MCL.clinical)
+```
+
+flag_genes = maftools:::flags(top = 20)
+
+flag_genes = c("TTN","MUC16","OBSCN","AHNAK2","SYNE1","FLG","MUC5B",  "DNAH17", "PLEC", "DST","SYNE2","NEB","HSPG2", "LAMA5","AHNAK","HMCN1",  "USH2A","DNAH11","MACF1","MUC17" ), isTCGA=FALSE)
+
+long_genes: "KCNQ1OT1","ANKRD20A9P","TSIX","SYNE1","ZBTB20","OBSCN",
+  "SH3TC2","NEB","MUC19","MUC4","NEAT1","CCDC168","AAK1","HYDIN","RNF213",      
+  "LOC100131257","FSIP2","MUC5B"))
+  
+differentially mutated genes in no-germline samples: EPPK1, MUC5AC
+```{r}
+flag_genes = maftools:::flags(top = 20)
+
+MCL = filterMaf(maf=MCL, genes = c("TTN","MUC16","OBSCN","AHNAK2","SYNE1","FLG","MUC5B","DNAH17", "PLEC", "DST","SYNE2","NEB","HSPG2", "LAMA5","AHNAK","HMCN1",  "USH2A","DNAH11","MACF1","MUC17","KCNQ1OT1","ANKRD20A9P","TSIX","SYNE1","ZBTB20","OBSCN",
+  "SH3TC2","NEB","MUC19","MUC4","NEAT1","CCDC168","AAK1","HYDIN","RNF213",      
+  "LOC100131257","FSIP2","MUC5B", "EPPK1", "MUC5AC"))
+```
+
+```{r}
+getGeneSummary(MCL)
+```
+
+
+```{r}
+write.mafSummary(maf=MCL, basename="MCL")
+plotmafSummary(maf=MCL, rmOutlier=TRUE, addStat = "median", dashboard = TRUE, titvRaw = FALSE)
+```
+
+#Oncoprint
+```{r}
+oncoplot(maf=MCL, top = 40, draw_titv = TRUE, showTumorSampleBarcodes = TRUE, removeNonMutated = FALSE, clinicalFeatures = (c("Germline") ), gene_mar = 7)
+```
+```{r}
+plotVaf(maf = MCL)
+```
+
+```{r}
+no_germline = subsetMaf(MCL, clinQuery = ("Germline %in% 'no'"))
+germline = subsetMaf(MCL, clinQuery = ("Germline %in% 'yes'"))
+```
+
+```{r}
+plotmafSummary(maf=no_germline, rmOutlier=TRUE, addStat = "median", dashboard = TRUE, titvRaw = FALSE)
+```
+```{r}
+plotmafSummary(maf=germline, rmOutlier=TRUE, addStat = "median", dashboard = TRUE, titvRaw = FALSE)
+```
+```{r}
+comparison <- mafCompare(germline,no_germline, "Germline Match", "Panel of Normals", minMut = 3 )
+
+comparison[["results"]] %>% 
+  gt() %>% 
+  fmt_number(columns=c("pval","or","ci.up","ci.low","adjPval"), decimals=5) %>% 
+  tab_options(table.font.size = px(10)) %>% 
+  tab_header(title = "Differentially Mutated Genes") 
+```
+```{r}
+oncoplot(maf=MCL, top = 40, draw_titv = TRUE, showTumorSampleBarcodes = TRUE, pathways = "auto", removeNonMutated = FALSE, clinicalFeatures = (c("Germline") ), fontSize = 0.7, legendFontSize = 1, gene_mar = 7, barcode_mar = 3)
+```
+
