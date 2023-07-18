@@ -1,0 +1,51 @@
+---
+title: "MATCH Nanostring DEG"
+output: html_notebook
+---
+
+
+```{r}
+library(tidyverse)
+library(DESeq2)
+library(bigPint)
+library(SummarizedExperiment)
+library(enrichplot)
+library(EnhancedVolcano)
+```
+
+```{r}
+MCL <- MCL_MATCH_3_no_vs_yes_Batch_1_
+
+rownames<-(MCL$Symbol)
+
+Volc <- EnhancedVolcano(MCL, lab=rownames, x="log2FoldChange", y="padj", ylab=bquote(~-Log[10] ~ adjusted~italic(P)), pCutoff = 0.10, FCcutoff=0.5, title="Non-Responders vs. Responders", ylim = c(0,1.8), xlim=c(-3,3), labSize = 2, pointSize = 2, drawConnectors = TRUE, boxedLabels = TRUE, max.overlaps = 10)
+
+```
+
+```{r}
+All_DEG <- as.matrix(data.frame(MCL_MATCH_3_no_vs_yes_Batch_1_[6:25], row.names = MCL_MATCH_3_no_vs_yes_Batch_1_$Symbol))
+
+pheatmap(All_DEG)
+```
+
+```{r}
+library(pheatmap)
+
+DEG<- as.matrix(data.frame(DEG[-1], row.names = DEG$Symbol))
+Sample_Annotation <-as.matrix(data.frame(Sample_Annotation), row.names=Sample_Annotation$`Sample Name`)
+
+Phenotype <- c("red","navy")
+names(Phenotype) <- c("non responder","responder")
+anno_colors <- list(color=color)
+
+heatmap_DEGS <- pheatmap(DEG, annotation = annotation, annotation_colors = anno_colors, cluster_cols=FALSE, )
+
+
+
+```
+
+
+```{r}
+MCL <- MCL_MATCH_3_no_vs_yes_Batch_1_
+```
+
