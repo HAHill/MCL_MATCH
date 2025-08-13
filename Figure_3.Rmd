@@ -1,0 +1,257 @@
+---
+title: "Figure 3"
+author: HA Hill
+project: MCL MATCH
+output:
+  pdf_document: default
+  html_document:default
+  word_document: default
+---
+
+
+```{r}
+library(tidyverse)
+library(ComplexHeatmap)
+```
+
+```{r}
+#Bind MAF files together
+
+wes_all<- fs::dir_ls(path="/Users/Holly_1_2/Desktop/MCL_MAFS_filtered/", glob="*.tsv") 
+
+wes_MCL <- wes_all %>% 
+  map_dfr(read_tsv, comment = "#", trim_ws = TRUE, col_types=cols(.default=col_character())) %>% 
+  bind_rows(.id="id")
+```
+
+```{r}
+MCH52_mutations$Tumor_Sample_Barcode <- "MCL2"
+
+MCL_2 <- MCH52_mutations %>% select(c("Hugo_Symbol","Entrez_Gene_Id","NCBI_Build","Chromosome","Start_Position","End_Position","Strand","Variant_Classification","Variant_Type","Reference_Allele","Tumor_Seq_Allele1","Tumor_Seq_Allele2","dbSNP_RS","dbSNP_Val_Status","Tumor_Sample_Barcode","cDNA_Change","Codon_Change","Protein_Change","COSMIC_overlapping_mutations","tumor_f","t_alt_count","t_ref_count","n_alt_count","n_ref_count")) %>%
+mutate(across(where(is.numeric), as.character))
+```
+
+
+```{r}
+library(writexl)
+
+MCL_all <- bind_rows(list(MCL_all,MCL_20))
+
+```
+
+```{r}
+write_xlsx(MCL_all,"MCL_all_filtered_genes.xlsx")
+```
+
+```{r}
+table(MCL_all$Hugo_Symbol)
+```
+
+
+```{r}
+Genes_2 <- MCL_all %>%
+    group_by(Hugo_Symbol) %>%
+    filter(n() >= 2) -> subset
+```
+
+```{r}
+MCL_oncoplot_genes <- read_excel("MCL_oncoplot_genes.xlsx", 
+sheet = "For_oncoplot")
+```
+
+```{r}
+#Make oncoplot of genes that occur 2 or more time in the cohort
+
+T0_pivot_genes <- MCL_oncoplot_genes %>% pivot_wider(names_from = c("MCL_name"), values_from = Variant_Classification, id_cols = c("Hugo_Symbol"), id_expand = T, values_fn = list(Variant_Classification =  ~ toString(unique(.))), values_fill = "")
+```
+
+```{r}
+T0_pivot_genes <- T0_pivot_genes %>% 
+ mutate(across(everything(), ~ str_replace(string = .x, 
+                                           pattern = c("In_Frame_Del, Missense_Mutation"),
+                                           replacement = "Multiple_types")))
+T0_pivot_genes <- T0_pivot_genes %>% 
+ mutate(across(everything(), ~ str_replace(string = .x, 
+                                           pattern = c("In_Frame_Del, Nonsense_Mutation"),
+                                           replacement = "Multiple_types")))
+
+T0_pivot_genes <- T0_pivot_genes %>% 
+ mutate(across(everything(), ~ str_replace(string = .x, 
+                                           pattern = c("Nonsense_Mutation, Missense_Mutation"),
+                                           replacement = "Multiple_types")))
+T0_pivot_genes <- T0_pivot_genes %>% 
+ mutate(across(everything(), ~ str_replace(string = .x, 
+                                           pattern = c( "Missense_Mutation, Nonsense_Mutation"),
+                                           replacement = "Multiple_types")))
+T0_pivot_genes <- T0_pivot_genes %>% 
+ mutate(across(everything(), ~ str_replace(string = .x, 
+                                           pattern = c( "Missense_Mutation, In_Frame_Del"),
+                                           replacement = "Multiple_types")))
+
+T0_pivot_genes <- T0_pivot_genes %>% 
+ mutate(across(everything(), ~ str_replace(string = .x, 
+                                           pattern = c("Frame_Shift_Del, Missense_Mutation"),
+                                           replacement = "Multiple_types")))
+T0_pivot_genes <- T0_pivot_genes %>% 
+ mutate(across(everything(), ~ str_replace(string = .x, 
+                                           pattern = c("Frame_Shift_Del, Frame_Shift_Ins"),
+                                           replacement = "Multiple_types")))
+
+T0_pivot_genes <- T0_pivot_genes %>% 
+ mutate(across(everything(), ~ str_replace(string = .x, 
+                                           pattern = c("Frame_Shift_Del, Nonsense_Mutation"),
+                                           replacement = "Multiple_types")))
+T0_pivot_genes <- T0_pivot_genes %>% 
+ mutate(across(everything(), ~ str_replace(string = .x, 
+                                           pattern = c("In_Frame_Ins, Missense_Mutation"),
+                                           replacement = "Multiple_types")))
+T0_pivot_genes <- T0_pivot_genes %>% 
+ mutate(across(everything(), ~ str_replace(string = .x, 
+                                           pattern = c("In_Frame_Ins, Frame_Shift_Del"),
+                                           replacement = "Multiple_types")))
+T0_pivot_genes <- T0_pivot_genes %>% 
+ mutate(across(everything(), ~ str_replace(string = .x, 
+                                           pattern = c("Frame_Shift_Ins, Frame_Shift_Del"),
+                                           replacement = "Multiple_types")))
+
+T0_pivot_genes <- T0_pivot_genes %>% 
+ mutate(across(everything(), ~ str_replace(string = .x, 
+                                           pattern = c("In_Frame_Del"),
+                                           replacement = "In_Frame_Indel")))
+
+T0_pivot_genes <- T0_pivot_genes %>% 
+ mutate(across(everything(), ~ str_replace(string = .x, 
+                                           pattern = c("In_Frame_Ins"),
+                                           replacement = "In_Frame_Indel")))
+```
+
+
+```{r}
+T0_pivot_genes_1 <- T0_pivot_genes[-63,]
+
+T0_mat<- T0_pivot_genes_1 %>% column_to_rownames(var="Hugo_Symbol") %>% mutate(across(everything(), ~ifelse(.=="",NA,as.character(.)))) %>% as.matrix()
+```
+
+```{r}
+#Make matrix from genes and variants
+
+mat_t <- t(T0_mat)
+
+mat_t_df <- as.data.frame(mat_t)
+
+mat_t_df$Unique_pt_id <- rownames(mat_t_df)
+
+Patients_in_matrix <- mat_t_df$Unique_pt_id
+
+mat_t0_hm <- t(mat_t)
+```
+
+```{r}
+alter_fun = list(
+  background = function(x, y, w, h) grid.rect(x, y, w, h, 
+            gp = gpar(fill = "lightgrey", lwd=0.3)),
+  Nonsense_Mutation = function(x, y, w, h) 
+     grid.rect(x, y, w, h, gp = gpar(fill = "#FF0000", col="black")),
+   Missense_Mutation = function(x, y, w, h) 
+     grid.rect(x, y, w, h, gp = gpar(fill = "#00A08A", col="black", lwd=0.5)),
+   Frame_Shift_Del = function(x, y, w, h)
+     grid.rect(x, y, w, h, gp = gpar(fill = "#F8DE7E", col="black", lwd=0.5)),
+   Frame_Shift_Ins = function(x, y, w, h) 
+        grid.rect(x, y, w, h, gp = gpar(fill = "#5BBCD6", lwd=0.5)),
+    In_Frame_Indel = function(x, y, w, h) 
+        grid.rect(x, y, w, h, gp = gpar(fill = "#EA879CFF", lwd=0.5)),
+   Multiple_types = function(x, y, w, h) 
+        grid.rect(x, y, w, h, gp = gpar(fill = "#614051", lwd=0.5)),
+    Frame_Shift_Complex = function(x, y, w, h) 
+        grid.rect(x, y, w, h, gp = gpar(fill = "brown", lwd=0.5)),
+    Splice_Site = function(x, y, w, h) 
+        grid.rect(x, y, w, h, gp = gpar(fill = "darkorange", lwd=0.5)),
+    Nonstop_Mutation = function(x, y, w, h) 
+        grid.rect(x, y, w, h, gp = gpar(fill = "pink", lwd=0.5)))
+
+col = c(Nonsense_Mutation = "#FF0000", Missense_Mutation = "#00A08A", Frame_Shift_Del = "#F8DE7E", Frame_Shift_Ins = "#5bbCD6", In_Frame_Indel = "#EA879CFF", Multiple_types = "#614051", Splice_Site = "darkorange")
+```
+
+```{r}
+Supplementary_Tables <- read_excel("~/Desktop/MATCH_npj_PO/Supplementary_Tables.xlsx", 
+sheet = "STable1_Patient_Information")
+```
+
+```{r}
+anno <- Supplementary_Tables
+
+ Response = anno$Response
+ Time = anno$Timepoint
+ Sex = anno$Sex
+ Sample = anno$Tissue
+ Karyotype = anno$Karyotype
+ Histotype = anno$Histotype
+ 'TP53/Chr17 Deletion'  = anno$Del_17_TP53
+ 'X or Y Deletion' = anno$Del_X_Y
+ GSVA_1st = anno$GSVA_1st
+ GSVA_2nd = anno$GSVA_2nd
+ GSVA_3rd = anno$GSVA_3rd
+ 
+```
+
+```{r}
+Row_annotation <- read_excel("~/Desktop/MATCH_npj_PO/MCL_MAFS_filtered/All_MCL_mutations.xlsx", 
+sheet = "Row_annotation")
+
+Pathway <- (Row_annotation$Pathway)
+
+row = rowAnnotation(Pathway=Pathway, col=list("Pathway"=c(
+"CAR-T"= '#9BB655FF',"OXPHOS"="#E46844FF","PARP"="#8FA3ABFF","PLK1"="#5480B5FF","NF-kB_Proteasome"="#834D24FF", "AKT-ERK"= "#F9F2D8FF","BTK"="#871C0FFF", "CDK" = "#894D9FFF", "mTOR" = "#F8DE7E", "Notch" = "#3FA0FFFF", 'Other_MCL'= "#FD817EFF", "PI3K_HDAC"= "#3A9387FF", "PI3K_mTOR" ="#C19A8DFF","CAR-T"= '#803233FF'), gp = gpar(col = "black"))
+)
+```
+
+```{r}
+ha = HeatmapAnnotation(Response = Response,
+                       Sex = Sex,
+                       Karyotype = Karyotype,
+                       Histotype = Histotype,
+                      'X or Y Deletion' = anno$Del_X_Y,
+                      'TP53/Chr17 Deletion'  = anno$Del_17_TP53,
+                       GSVA_1st = anno$GSVA_1st,
+                       GSVA_2nd = anno$GSVA_2nd,
+                       GSVA_3rd = anno$GSVA_3rd,
+                       col=list(
+                         'Response'=c('Non-responder'= "darkblue",'Responder'="darkgreen"),
+                         'Sample'=c('Apheresis'="orange",'LN'="yellow",'BM'="blue",'PB'="red","Other"="gray"),
+                         'Sex'=c('Female'="pink",'Male'="lightblue"),
+                         'Time'=c('Naiive'="#67a9cf",'Relapsed'="violet","Treatment"="darkred"),
+                         'Karyotype'=c("Complex"="purple","Abnormal"="blue","Normal"="green"),
+                         'Histotype'=c("Blastoid"="#E5AD4FFF","Classic"="#A7DBD8FF",'Pleomorphic'="#486078FF"),
+                         "GSVA_1st"=c("CAR-T"= '#9BB655FF', "HDAC"='#ED3F39FF', "MALT-1"="#ADD0B5FF", "MDM2"="#484357FF",
+                                      "OXPHOS"="#E46844FF", "PARP"="#8FA3ABFF", "PI3K-Akt"="#303638FF",
+                                      "PLK1"="#5480B5FF","Proteasome"="#834D24FF", "Thioredoxin Reducatase"="#F4C659FF"), 
+                         "GSVA_2nd"=c("AKT/ERK"= "#F9F2D8FF","BCL-2"="#AF2213FF", "BTK"="#871C0FFF","CAR-T"= '#9BB655FF',
+                                      "CDK" = "#894D9FFF","HDAC"='#ED3F39FF', "MALT-1"="#ADD0B5FF",
+                                      "MDM2"="#484357FF","OXPHOS"="#E46844FF","PI3K-Akt"="#303638FF","PI3Ka"="#C19A8DFF",
+                                      "PLK1"="#5480B5FF","Thioredoxin Reducatase"="#F4C659FF"),
+                         "GSVA_3rd"=c("AKT/ERK"= "#F9F2D8FF","BCL-2"="#AF2213FF","CAR-T"= '#9BB655FF',
+                                      "CDK" = "#894D9FFF","HDAC"='#ED3F39FF', "MALT-1"="#ADD0B5FF",
+                                      "OXPHOS"="#E46844FF","PARP"= '#8FA3ABFF',"PI3K-Akt"="#303638FF", "PI3K/HDAC"= "#3A9387FF",
+                                      "PI3Ka"="#C19A8DFF", "Proteasome"="#834D24FF","Thioredoxin Reducatase"="#F4C659FF")),
+                       which = "column", annotation_name_gp = gpar(fontsize = 8), gp = gpar(col = "black"))
+```
+
+```{r}
+T0_mutations = oncoPrint(mat_t0_hm, alter_fun = alter_fun, na_col = "gray",  heatmap_legend_param = list(title = "Variant Type"), border_gp = gpar(col="black", lty = 1), show_column_names = T, row_names_gp = gpar(fontsize = 9, fontface = "italic"), row_names_side = "left", pct_side = "right", pct_gp = gpar(fontsize=9), show_pct = T, col = col, top_annotation = ha)
+```
+
+```{r}
+sample_order = c("MCL1","MCL2","MCL3","MCL4","MCL5","MCL6","MCL7","MCL8","MCL9","MCL10","MCL11","MCL12","MCL13","MCL14","MCL15","MCL16","MCL17","MCL18","MCL19","MCL20")
+```
+
+```{r}
+T0_mutations = oncoPrint(mat_t0_hm, alter_fun = alter_fun, na_col = "gray",  heatmap_legend_param = list(title = "Variant Type"), border_gp = gpar(col="black", lty = 1), show_column_names = T, row_names_gp = gpar(fontsize = 10, fontface = "italic"), row_names_side = "left", pct_side = "right", pct_gp = gpar(fontsize=10), show_pct = T, col = col, top_annotation = ha, right_annotation = row, column_order = sample_order,)
+```
+
+```{r}
+pdf(file = "MCL_Oncoplot.pdf", height=15, width=12)
+
+plot(T0_mutations)
+
+dev.off()
+```
