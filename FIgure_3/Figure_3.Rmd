@@ -136,3 +136,29 @@ plot(T0_mutations)
 dev.off()
 ```
 
+```{r}
+library(GenVisR)
+```
+
+#Figure 3B - Copy number variation analysis
+
+
+
+```{r}
+pdf(file="CNplot_MCL.pdf", height=8, width=14)
+
+MCL_cn %>% as.data.table() %>% cnSpec(genome="hg38")
+
+dev.off()
+```
+
+```{r}
+cnView(MCL1_calls, chr="chr17", genome = "hg38", ideogram_txtSize = 4)
+```
+```{r}
+pdf(file="CNplot_freq_MCL.pdf", height=8, width=14)
+
+cnFreq(MCL_cn, facet_lab_size = 8)
+
+dev.off()
+```
