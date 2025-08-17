@@ -1,0 +1,75 @@
+---
+title: "MCL_MATCH_WES"
+output: html_notebook
+author: HA Hill
+---
+
+```{r}
+library(tidyverse)
+library(maftools)
+library(gt)
+```
+
+#Filter out extraneous variants.
+
+```{r}
+wes_mcl <- MCL_mutations
+```
+
+```{r}
+wes_mcl <- wes_mcl %>%
+filter(Variant_Classification !="Intron" & Hugo_Symbol != "Unknown")
+
+wes_mcl <- wes_mcl %>%
+filter(Variant_Classification !="3'UTR")
+
+wes_mcl <- wes_mcl %>%
+filter(Variant_Classification !="Silent")
+
+wes_mcl <- wes_mcl %>%
+filter(Variant_Classification !="RNA")
+
+wes_mcl <- wes_mcl %>%
+filter(Variant_Classification !="5'Flank")
+
+wes_mcl <- wes_mcl %>%
+filter(Variant_Classification !="5'UTR")
+
+wes_mcl <- wes_mcl %>%
+filter(Variant_Classification !="DE_NOVO_START_OUT_FRAME")
+
+wes_mcl <- wes_mcl %>%
+filter(Variant_Classification !="DE_NOVO_START_IN_FRAME")
+
+wes_mcl <- wes_mcl %>%
+filter(Variant_Classification !="In_Frame_Ins")
+
+wes_mcl <- wes_mcl %>%
+filter(Variant_Classification !="In_Frame_Del")
+
+wes_mcl <- wes_mcl %>%
+filter(Variant_Classification !="COULD_NOT_DETERMINE")
+
+wes_mcl <- wes_mcl %>%
+filter(Variant_Classification !="START_CODON_SNP")
+
+wes_mcl <- wes_mcl %>%
+filter(Variant_Classification !="START_CODON_INS")
+
+wes_mcl <- wes_mcl %>%
+filter(Chromosome !="MT")
+
+```
+
+#Filter tumor vaf < 0.03
+
+```{r}
+wes_mcl_filter <- wes_mcl %>% 
+filter(tumor_f > 0.03) 
+
+wes_mcl_filter <- wes_mcl_filter %>% filter(!is.na(COSMIC_overlapping_mutations) | !is.na(CGC_Tumor_Types_Somatic) | !is.na(FamilialCancerDatabase_Syndromes) | !is.na(Achilles_Top_Genes) |!is.na(COSMIC_fusion_genes)|!is.na(CGC_Tumor_Types_Germline)|!is.na(DNARepairGenes_Activity_linked_to_OMIM)|!is.na(CGC_Translocation_Partner)|!is.na(GO_Molecular_Function)|(Hugo_Symbol=="NSD2")|(Hugo_Symbol=="KMT2A")|(Hugo_Symbol=="MAP3K14")|(Hugo_Symbol=="BTK")|(Hugo_Symbol=="IGH") | (Hugo_Symbol=="MYC")|(Hugo_Symbol=="TP53")|(Hugo_Symbol=="ATM")|(Hugo_Symbol=="TRAF2")|(Hugo_Symbol=="CHD2")|(Hugo_Symbol=="TLR2")|(Hugo_Symbol=="ARID2A")|(Hugo_Symbol=="RIMS2")|(Hugo_Symbol=="NOTCH2")|(Hugo_Symbol=="SPEN")|(Hugo_Symbol=="CARD11")|(Hugo_Symbol=="CCND1")|(Hugo_Symbol=="SP140")|(Hugo_Symbol=="CDKN2A")|(Hugo_Symbol=="S1PR1"))
+
+wes_mcl_filter <- wes_mcl_filter %>% 
+  filter(ClinVar_VCF_AF_EXAC < 0.001 | is.na (ClinVar_VCF_AF_EXAC))
+
+```
