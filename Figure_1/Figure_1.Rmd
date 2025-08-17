@@ -18,7 +18,7 @@ library(readxl)
 library(RColorBrewer)
 ```
 ```{r}
-#Import MCL MATCH gene set (Supplemental File 1, Table 2)
+#Import MCL MATCH gene set (Supplemental File 1, Table 2) or Excel file MCL_MATCH_Genesets
 MATCH <- read_excel("Desktop/Supp_File_1_Genesets.xlsx", sheet = "Matched_Therapy_Geneset")
 
 MATCH <- sapply(MATCH, as.character)
@@ -27,7 +27,7 @@ MATCH[is.na(MATCH)] <- " "
 MATCH <- as.data.frame(MATCH)
 ```
 ```{r}
-#Import gene expression read counts from normalized and batch corrected Nanostring .rcc files (Supplemental File 3, Table  )
+#Import gene expression read counts from normalized and batch corrected Nanostring .rcc files: (Supplemental File 3, Table 6, gene counts only) or Excel file "MATCH raw gene counts" 
 
 Counts <- read_excel("Desktop/MATCH_npj_PO/Files_for_upload/MATCH_raw_gene_counts.xlsx")
 ```
@@ -46,7 +46,6 @@ gsvaPar <- gsvaParam(Counts_mat, MATCH)
 
 gsva.es <- gsva(gsvaPar, verbose=FALSE)
 ```
-
 ```{r}
 set.seed(202)
 
