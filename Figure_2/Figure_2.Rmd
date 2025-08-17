@@ -4,7 +4,7 @@ author: HA Hill
 project: MCL MATCH
 output:
   pdf_document: default
-  html_document:default
+  html_document: default
   word_document: default
 ---
 
@@ -12,23 +12,28 @@ output:
 library(tidyverse)
 library(EnhancedVolcano)
 library(ComplexHeatmap)
-
+library(readxl)
 ```
 
 ```{r}
+#Figure 2A
 #Visualization of DEG using a volcano plot
+#Read in Supplemental Table or R file "Gene_counts_Log_FC.rds"
 
-Supplementary_Tables <- read_excel("~/Desktop/MATCH_npj_PO/Supplementary_Tables.xlsx", 
- sheet = "STable6_Gene_counts_FC")
-
-Supplementary_Tables_1$log2FoldChange_opposite <- (Supplementary_Tables_1$log2FoldChange)*(-1)
+Gene_counts <- read_xlsx("Supplemental_Table.xlsx")
 ```
 
 ```{r}
-Supplementary_Tables$pvalue <- as.numeric(Supplementary_Tables$pvalue)
+#We will visualize differences between non-responders compared to responders. 
 
-  e <- EnhancedVolcano(Supplementary_Tables,
-    lab = Supplementary_Tables$upperSymbol,
+Gene_counts$log2FoldChange_opposite <- (Gene_counts$log2FoldChange)*(-1)
+```
+
+```{r}
+Gene_counts$pvalue <- as.numeric(Gene_counts$pvalue)
+
+  e <- EnhancedVolcano(Gene_counts,
+    lab = Gene_counts$upperSymbol,
     x = 'log2FoldChange',
     y = 'pvalue',
     title = 'Non Responders vs Responders',
@@ -49,6 +54,8 @@ Supplementary_Tables$pvalue <- as.numeric(Supplementary_Tables$pvalue)
     colConnectors = 'black')
   
   plot <- e + ggplot2::coord_cartesian(xlim=c(-2.75, 2.75), ylim=c(0,5))
+  
+  plot
 ```
 
 ```{r}
@@ -60,21 +67,21 @@ dev.off()
 ```
 
 
+```{r}
+#Figure 2B
 #Heatmap of DGES
 
-```{r}
-m <- MCL_heatmap %>% select(1:42) 
+MCL_mat <- read_excel("MCL_heatmap_DEG.xlsx")
 
-m <- sapply(m, as.numeric)
+anno <- MCL_hm %>% select(1:4)
 
-m <- t(m)
+MCL_mat <- MCL_mat %>% select(5:46)
 
-m <- as.matrix(m)
+MCL_mat_n <- MCL_mat %>% mutate_if(is.character,as.numeric)
 
-```
+MCL_mat_n <- scale(MCL_mat_n)
 
-```{r}
-anno <- MCL_heatmap %>% select(43:47)
+MCL_m <- t(MCL_mat_n) 
 ```
 
 ```{r}
@@ -87,7 +94,7 @@ Sex = anno$Sex
 ```{r}
 ha = HeatmapAnnotation(BTKi=BTKi, Sample = Sample, Time=Time, Sex = Sex, col=list('BTKi'=c('Non-responder'= "darkblue",'Responder'="darkgreen"),
   'Sample'=c('Apheresis'="orange",'LN'="yellow",'BM'="blue",'PB'="red","Other"="gray"),
-  'Sex'=c('female'="pink",'male'="lightblue"),
+  'Sex'=c('Female'="pink",'Male'="lightblue"),
   'Time'=c('Naiive'="#67a9cf",'Relapsed'="violet","Treatment"="darkred")), which = "column", annotation_name_gp = gpar(fontsize = 8))
 ```
 
@@ -95,7 +102,9 @@ ha = HeatmapAnnotation(BTKi=BTKi, Sample = Sample, Time=Time, Sex = Sex, col=lis
 ```{r}
 pdf(file="DEG_heatmap_MCL.pdf", height=11, width=8)
 
-heat <- Heatmap(m, heatmap_legend_param = list(title = "Expression"), top_annotation = ha, row_names_side = 'left', row_km = 4, row_names_gp = gpar(fontsize = 9, fontface = "italic"), column_names_gp = gpar(fontsize = 9), cluster_rows = T, cluster_columns = F, column_split = BTKi)
+set.seed(222)
+
+heat <- Heatmap(MCL_m, heatmap_legend_param = list(title = "Expression"), top_annotation = ha, row_names_side = 'left', row_km = 4, row_names_gp = gpar(fontsize = 9, fontface = "italic"), column_names_gp = gpar(fontsize = 9), cluster_rows = T, cluster_columns = F, column_split = BTKi)
 
 plot(heat)
 
