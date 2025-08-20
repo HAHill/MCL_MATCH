@@ -19,7 +19,6 @@ https://app.rosalind.bio/showcase/gettingstartednano
 #There are in folders classified for the figure panels: (1) MSigDB_Immune_gmt
 #The second panels is created from Nanostring's proprietary gene sets related to cellular pathways - these are similary to the T360 pathway gene sets. 
 ```
-
 #Supplementary Figure 3C - Tumor 360 GSVA Heatmap 
 ```{r}
 library(GSVA)
@@ -34,7 +33,6 @@ MCL <- Counts
 
 MCL_m<- as.matrix(data.frame(MCL[-1], row.names = MCL$Symbol))
 ```
-
 ```{r}
 #Load T360 Pathway Genesets
 #Supplementary Table 3
@@ -49,11 +47,8 @@ gsvaPar <- gsvaParam(MCL_m, T360)
 gsva.es <- gsva(gsvaPar, verbose=FALSE)
 
 p <- pheatmap(gsva.es, col = colorRampPalette(rev(brewer.pal(n = 7, name ="RdBu")))(100), legend=T, clustering_distance_cols = 'correlation', clustering_distance_rows = 'correlation', clustering_method="average", main = "GSVA Enrichment Scores using Nanostring Tumor 360 Gene Sets")
-
 ```
-
 #Supplementary Figure 4 - CNV detection in 20 MCL Samples
-
 ```{r}
 #Load CNV dataset
 library(GenVisR)
@@ -64,7 +59,6 @@ CNV <- read_rds("/Users/hahill/Desktop/MATCH_npj_PO/Code/WES_pipeline/MCL_Copy_N
 CNV_df <- CNV %>%  select(c("chromosome", "start","end","segmean", "sample")) 
 
 CNV_df <- CNV_df %>% as.data.table()
-
 
 cnv_plot <- cnSpec(CNV_df, genome = "hg38")
 
