@@ -1,2 +1,2 @@
 **Code and files for figures from manuscript <br> "Integrative Profiling Strategies to Guide Personalized Therapy in Mantle Cell Lymphoma: A Pilot Study'** <br> Project from the Michael L. Wang Lab at The University of Texas MD Anderson Cancer Center <br> Full manuscript by Liu, Hill, et al can be found at (add link to publication here).
-![Visual_abstract](Supplementary_figures/Visual_Abstract.pdf)
+![Visual_abstract](Supplementary_figures/Visual_Abstract.png)
