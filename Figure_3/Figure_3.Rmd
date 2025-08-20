@@ -1,22 +1,20 @@
 ---
 title: "MATCH Figure 3"
-output:
-  pdf_document: default
-  html_notebook: default
+author: HA Hill
+output: html_notebook
 ---
 ```{r}
 library(ComplexHeatmap)
 library(tidyverse)
 ```
-
 ```{r}
+#Import genes from WES for visualization - please see methods and "Processing Pipeline" for upstream steps.
+
 Genes_for_heatmap <- read_rds(Genes_for_heatmap)
 ```
-
 ```{r}
 T0_mat<- Genes_for_heatmap %>% column_to_rownames(var="Hugo_Symbol") %>% mutate(across(everything(), ~ifelse(.=="",NA,as.character(.)))) %>% as.matrix()
 ```
-
 ```{r}
 #Make matrix from genes and variants
 
@@ -30,7 +28,6 @@ Patients_in_matrix <- mat_t_df$Unique_pt_id
 
 mat_t0_hm <- t(mat_t)
 ```
-
 ```{r}
 alter_fun = list(
   background = function(x, y, w, h) grid.rect(x, y, w, h, 
@@ -56,7 +53,6 @@ alter_fun = list(
 
 col = c(Nonsense_Mutation = "#FF0000", Missense_Mutation = "#00A08A", Frame_Shift_Del = "#F8DE7E", Frame_Shift_Ins = "#5bbCD6", In_Frame_Indel = "#EA879CFF", Multiple_types = "#614051", Splice_Site = "darkorange")
 ```
-
 ```{r}
 Supplementary_Tables <- read_excel("~/Desktop/MATCH_npj_PO/Tables/Supplementary_Tables.xlsx", 
 +     sheet = "STable1_Patient_Information")
@@ -76,8 +72,9 @@ anno <- Supplementary_Tables
  GSVA_2nd = anno$GSVA_2nd
  GSVA_3rd = anno$GSVA_3rd
 ```
-
 ```{r}
+#Row annotations are imported with another file "MCL_genes_filter.xlsx", table = "Row_annotation"
+
 Row_annotation <- read_excel("~/Desktop/MATCH_npj_PO/MCL_MAFS_filtered/All_MCL_mutations.xlsx", 
 sheet = "Row_annotation")
 
@@ -123,9 +120,8 @@ sample_order = c("MCL1","MCL2","MCL3","MCL4","MCL5","MCL6","MCL7","MCL8","MCL9",
 ```
 
 ```{r}
-T0_mutations = oncoPrint(mat_t0_hm, alter_fun = alter_fun, na_col = "gray",  heatmap_legend_param = list(title = "Variant Type"), border_gp = gpar(col="black", lty = 1), show_column_names = T, row_names_gp = gpar(fontsize = 10, fontface = "italic"), row_names_side = "left", pct_side = "right", pct_gp = gpar(fontsize=10), show_pct = T, col = col, top_annotation = ha, right_annotation = row, column_order = sample_order,)
+T0_mutations = oncoPrint(mat_t0_hm, alter_fun = alter_fun, na_col = "gray",  heatmap_legend_param = list(title = "Variant Type"), border_gp = gpar(col="black", lty = 1), show_column_names = T, row_names_gp = gpar(fontsize = 10, fontface = "italic"), row_names_side = "left", pct_side = "right", pct_gp = gpar(fontsize=10), show_pct = T, col = col, top_annotation = ha, right_annotation = row, column_order = sample_order)
 ```
-)_
 
 ```{r}
 pdf(file = "MCL_Oncoplot.pdf", height=15, width=12)
