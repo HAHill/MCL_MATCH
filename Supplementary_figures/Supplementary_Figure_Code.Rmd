@@ -1,0 +1,75 @@
+---
+title: "Supplementary Figures for MCL MATCH Manuscript"
+output: html_notebook
+author: HA Hill
+---
+#Supplementary Figures 1 and 2 - please refer to uploaded image files
+
+#Supplementary Figure 3A - Nanostring Cell Type Profiing - Please see the following websites for more information. Code is proprietary to Nanostring and Rosalind:
+https://nanostring.com/products/ncounter-analysis-system/nsolver-advanced-analysis-software/
+https://app.rosalind.bio/showcase/gettingstartednano
+
+#Supplementary Figure 3B - Immune pathway enrichment analysis
+```{r}
+#Note these gene set enrichment analyses were conducted with Nanostring's curated gene set list and on their associated nCounter Rosalind platform. We do not have access to the exact code or set seed, so exact results may differ. Pathway analyses with the T360 gene-set and MCL MATCH gene-set were conducted with our own code and methods and can be referenced below for Supplemental Figure 3C and in the Figure 2 code file. 
+
+#These figures can be similarly produced by reading in normalized gene expression counts from Nanostring MCL MATCH / Tumor 360 assay and conducting GSEA. 
+
+#Read in Nanostring curated gene sets from https://www.gsea-msigdb.org/gsea/msigdb/
+#There are in folders classified for the figure panels: (1) MSigDB_Immune_gmt
+#The second panels is created from Nanostring's proprietary gene sets related to cellular pathways - these are similary to the T360 pathway gene sets. 
+```
+
+#Supplementary Figure 3C - Tumor 360 GSVA Heatmap 
+```{r}
+library(GSVA)
+library(pheatmap)
+library(RColorBrewer)
+
+#Create gene expression matrix
+
+Counts <- read_delim("MCL_MATCH_normalizedCountsWithAnnotations.tsv", delim = "\t", escape_double = FALSE, trim_ws = TRUE)
+
+MCL <- Counts
+
+MCL_m<- as.matrix(data.frame(MCL[-1], row.names = MCL$Symbol))
+```
+
+```{r}
+#Load T360 Pathway Genesets
+#Supplementary Table 3
+
+Tumor_360_Gene_Sets_gmt_w_custom <- read_excel("MATCH_npj_PO/Tables/Supplementary_Tables.xlsx", 
+sheet = "STable_3_Tumor_360_Geneset")
+
+T360 <- Tumor_360_Gene_Sets_gmt_w_custom
+
+gsvaPar <- gsvaParam(MCL_m, T360)
+
+gsva.es <- gsva(gsvaPar, verbose=FALSE)
+
+p <- pheatmap(gsva.es, col = colorRampPalette(rev(brewer.pal(n = 7, name ="RdBu")))(100), legend=T, clustering_distance_cols = 'correlation', clustering_distance_rows = 'correlation', clustering_method="average", main = "GSVA Enrichment Scores using Nanostring Tumor 360 Gene Sets")
+
+```
+
+#Supplementary Figure 4 - CNV detection in 20 MCL Samples
+
+```{r}
+#Load CNV dataset
+library(GenVisR)
+library(data.table)
+
+CNV <- read_rds("/Users/hahill/Desktop/MATCH_npj_PO/Code/WES_pipeline/MCL_Copy_Number.rds")
+
+CNV_df <- CNV %>%  select(c("chromosome", "start","end","segmean", "sample")) 
+
+CNV_df <- CNV_df %>% as.data.table()
+
+
+cnv_plot <- cnSpec(CNV_df, genome = "hg38")
+
+cnv_plot
+
+```
+#Supplementary Figure 5 - Western blot film scans - please see photo in supplementary files
+
