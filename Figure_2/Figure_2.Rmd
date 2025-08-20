@@ -2,10 +2,7 @@
 title: "Figure 2"
 author: HA Hill
 project: MCL MATCH
-output:
-  pdf_document: default
-  html_document: default
-  word_document: default
+output: html_notebook
 ---
 
 ```{r}
@@ -18,17 +15,15 @@ library(readxl)
 ```{r}
 #Figure 2A
 #Visualization of DEG using a volcano plot
-#Read in Supplemental Table or R file "Gene_counts_Log_FC.rds"
+#Read in Supplemental Table 6: Gene_Counts_FC or R GitHub file "Gene_counts_Log_FC.rds"
 
-Gene_counts <- read_xlsx("Supplemental_Table.xlsx")
+Gene_counts <- read_xlsx("Supplemental_Tables.xlsx")
 ```
-
 ```{r}
-#We will visualize differences between non-responders compared to responders. 
+#We will visualize differences between non-responders compared to responders, so we will switch the signs. 
 
 Gene_counts$log2FoldChange_opposite <- (Gene_counts$log2FoldChange)*(-1)
 ```
-
 ```{r}
 Gene_counts$pvalue <- as.numeric(Gene_counts$pvalue)
 
@@ -65,11 +60,10 @@ plot
 
 dev.off()
 ```
-
-
 ```{r}
 #Figure 2B
 #Heatmap of DGES
+#Read GitHub File MCL_heatmap_DEG.xlsx or can use Supplementary table 5 with annotations from Supplementary table 1
 
 MCL_mat <- read_excel("MCL_heatmap_DEG.xlsx")
 
@@ -83,22 +77,18 @@ MCL_mat_n <- scale(MCL_mat_n)
 
 MCL_m <- t(MCL_mat_n) 
 ```
-
 ```{r}
 BTKi = anno$Response
 Sample = anno$Tissue
 Time = anno$Time
 Sex = anno$Sex
 ```
-
 ```{r}
 ha = HeatmapAnnotation(BTKi=BTKi, Sample = Sample, Time=Time, Sex = Sex, col=list('BTKi'=c('Non-responder'= "darkblue",'Responder'="darkgreen"),
   'Sample'=c('Apheresis'="orange",'LN'="yellow",'BM'="blue",'PB'="red","Other"="gray"),
   'Sex'=c('Female'="pink",'Male'="lightblue"),
   'Time'=c('Naiive'="#67a9cf",'Relapsed'="violet","Treatment"="darkred")), which = "column", annotation_name_gp = gpar(fontsize = 8))
 ```
-
-
 ```{r}
 pdf(file="DEG_heatmap_MCL.pdf", height=11, width=8)
 
