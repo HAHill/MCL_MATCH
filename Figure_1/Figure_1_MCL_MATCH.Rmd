@@ -20,7 +20,8 @@ library(RColorBrewer)
 ```
 
 ```{r}
-#Import MCL MATCH gene set (Supplementary File 1, Table 2)
+#Import MCL MATCH gene set (Supplementary File 1, Table 2) or Github file: MCL_MATCH_Geneset.xlsx
+
 MATCH <- read_excel("Supp_File_1_Genesets.xlsx", sheet = "Matched_Therapy_Geneset")
 
 MATCH <- sapply(MATCH, as.character)
@@ -29,7 +30,7 @@ MATCH <- as.data.frame(MATCH)
 ```
 
 ```{r}
-#Import gene expression read counts from normalized and batch corrected Nanostring .rcc files ()
+#Import gene expression read counts from normalized and batch corrected Nanostring .rcc files () - you may also use Github file: MATCH_gene_counts.xlsx
 
 Counts <- read_delim("MCL_MATCH_normalizedCountsWithAnnotations.tsv", 
 delim = "\t", escape_double = FALSE, 
